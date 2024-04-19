@@ -1,6 +1,12 @@
 name: GitHub Release
 on:
   workflow_call:
+    inputs:
+      branch_name:
+        description: 'Default beach name for the GitHub Release'
+        default: 'main'
+        required: false
+        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,7 +64,7 @@ jobs:
       - name: Create Changelog PR
         if: steps.changelog.outputs.skipped == 'false'
         run: |
-          gh pr create --base master --head ${{ env.PR_BRANCH }} --title 'chore(release): ${{ steps.changelog.outputs.tag }} [skip-ci]' --body '${{ steps.changelog.outputs.clean_changelog }}'
+          gh pr create --base ${{ inputs.branch_name }} --head ${{ env.PR_BRANCH }} --title 'chore(release): ${{ steps.changelog.outputs.tag }} [skip-ci]' --body '${{ steps.changelog.outputs.clean_changelog }}'
         env:
           GH_TOKEN: ${{ github.token }}
 
