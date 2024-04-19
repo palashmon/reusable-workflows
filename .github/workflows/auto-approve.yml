@@ -4,8 +4,6 @@ on:
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     if: github.actor == 'renovate[bot]'
     steps:
       - name: Approve Renovate PR
