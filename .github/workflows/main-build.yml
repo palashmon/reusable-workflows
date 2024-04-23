@@ -1,21 +1,52 @@
+# **Name**
+# CI - Reusable workflow
+
+# **Overview**
+# This workflow runs the build and test jobs for various Node versions.
+# Continuously integrating the project ensures that the codebase is always in a working state.
+
+# **When**
+# This workflow is triggered by other workflows.
+# It is not triggered by any events.
+
 name: CI
 on:
   workflow_call:
+    inputs:
+      test-needed:
+        description: "Set to false if the test step is not needed."
+        required: false
+        type: boolean
+        default: true
+      install-legacy-peer-deps:
+        description: "Set to true if the legacy-peer-deps flag is needed."
+        required: false
+        type: boolean
+        default: false
+
+# Define the jobs that are called by other workflows.
 jobs:
   build:
-    name: Node.js ${{ matrix.node-version }}
+    name: "Test: Node ${{ matrix.node_version }}"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['lts/*']
+        node_version: [18, 20]
     steps:
-      - name: Checkout Repo
+      - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - name: Setup Node.js
+      - name: Set Node version to ${{ matrix.node_version }}
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: ./package.json
-      - run: npm install
+      - name: Install legacy dependencies
+        if: ${{ inputs.install-legacy-peer-deps == true }}
+        run: npm install --legacy-peer-deps
+      - name: Install dependencies
+        if: ${{ inputs.install-legacy-peer-deps == false }}
+        run: npm install
+      - name: Run tests
+        if: ${{ inputs.test-needed == true }}
+        run: npm test

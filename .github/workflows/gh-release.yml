@@ -1,27 +1,94 @@
+# **Name**
+# GitHub Release - Reusable workflow
+
+# **Overview**
+# This workflow creates a GitHub release with the changelog.
+# It checks if a fresh commit is available, builds the project,
+# and creates a changelog, and a PR with the release notes.
+
+# **When**
+# Mainly, this workflow is called by other workflows.
+
 name: GitHub Release
+
 on:
   workflow_call:
     inputs:
       branch_name:
-        description: 'Default beach name for the GitHub Release'
-        default: 'main'
+        description: "Default beach name for the GitHub Release"
+        default: "main"
         required: false
         type: string
+      test-needed:
+        description: "Set to false if the test step is not needed."
+        required: false
+        type: boolean
+        default: true
+
+# Define the jobs that are called by other workflows.
 jobs:
-  build:
+  # STEP 1: Check if a fresh commit is available
+  check_date:
+    name: Check latest commit
     runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
     steps:
-      - name: Checkout Repo
+      - uses: actions/checkout@v4
+      - name: "[DEBUG] Print latest commit"
+        run: |
+          echo ${{ github.sha }}
+          echo $(git rev-list  --after="1 week" --max-count=1  ${{ github.sha }})
+
+      - id: should_run
+        continue-on-error: true
+        name: Check if release is needed
+        run: |
+          set -x
+          if test -z $(git rev-list  --after="1 week" --max-count=1  ${{ github.sha }}) ; then
+            should_run=false
+          else
+            should_run=true
+          fi
+          echo "should_run=$should_run"
+          echo "should_run=$should_run" >> $GITHUB_OUTPUT
+
+  # STEP 2: Print the should_run output for debugging
+  echo_should_run:
+    runs-on: ubuntu-latest
+    needs: check_date
+    steps:
+      - name: "[DEBUG] Print should_run output"
+        run: |
+          echo "## Should Run Status" >> $GITHUB_STEP_SUMMARY
+          echo "Should Run - ${{ needs.check_date.outputs.should_run }}" >> $GITHUB_STEP_SUMMARY
+          if [[ ${{ needs.check_date.outputs.should_run }} == "false" ]] ; then
+            echo '❌ No fresh commits detected. Skipping the build process!' >> $GITHUB_STEP_SUMMARY
+          else
+            echo '✅ Fresh commits detected. Proceeding with the build process!' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # STEP 3: Build the project if a fresh commit is available
+  build:
+    name: "Build: Node 20"
+    if: ${{ needs.check_date.outputs.should_run != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - name: Setup Node.js
+      - name: Set Node version to 20
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
-          cache-dependency-path: ./package.json
-      - run: npm i
-      - run: npm test
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        if: ${{ inputs.test-needed == true }}
+        run: npm test
 
+  # STEP 4: Create a changelog and a PR with the release notes
   changelog:
     name: Changelog
     needs:
@@ -42,13 +109,12 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          fetch-depth: '0'
-
+          fetch-depth: 0
       - name: Create release branch
         run: |
           git checkout -b ${{ env.PR_BRANCH }}
 
-      - name: Create Changelog
+      - name: Create release commit
         id: changelog
         uses: TriPSs/conventional-changelog-action@dd19d7c07e5f620b2d6f48d547148a4b6b29e92f # v3.19.0
         with:
@@ -56,27 +122,35 @@ jobs:
           git-user-name: "github-actions"
           git-user-email: "github-actions[bot]@users.noreply.github.com"
           git-branch: ${{ env.PR_BRANCH }}
-          skip-git-pull: true
           output-file: false
-          create-summary: true
-          skip-on-empty: false
-          release-count: 10
+          skip-git-pull: true
 
-      # create PR using GitHub CLI
-      - name: Create Changelog PR
+      - name: Create Changelog PR with release notes
         if: steps.changelog.outputs.skipped == 'false'
         run: |
-          gh pr create --base ${{ inputs.branch_name }} --head ${{ env.PR_BRANCH }} --title 'chore(release): ${{ steps.changelog.outputs.tag }} [skip-ci]' --body '${{ steps.changelog.outputs.clean_changelog }}'
+          gh pr create --base ${{ inputs.branch_name }} --head ${{ env.PR_BRANCH }} --title 'release: ${{ steps.changelog.outputs.tag }} [skip-ci]' --body '${{ steps.changelog.outputs.clean_changelog }}'
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Merge Changelog PR
+      - name: Merge PR and delete branch
         if: steps.changelog.outputs.skipped == 'false'
         run: |
           gh pr merge --squash --auto --delete-branch ${{ env.PR_BRANCH }}
         env:
           GH_TOKEN: ${{ github.token }}
 
+  # STEP 5: Print the changelog outputs for debugging
+  echo_changelog:
+    runs-on: ubuntu-latest
+    needs: changelog
+    steps:
+      - name: "[DEBUG] Print changelog outputs"
+        run: |
+          echo "[Changelog] Skipped - ${{ needs.changelog.outputs.skipped }}"
+          echo "[Changelog] Tag - ${{ needs.changelog.outputs.tag }}"
+          echo "[Changelog] Version - ${{ needs.changelog.outputs.version }}"
+
+  # STEP 6: Create a GitHub release with the changelog
   release:
     name: GitHub Release
     needs: changelog
@@ -85,7 +159,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-
       - name: Create Release
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # v2.0.4
         with:
@@ -94,5 +167,5 @@ jobs:
           tag_name: ${{ needs.changelog.outputs.tag }}
           draft: false
           generate_release_notes: true
-          make_latest: 'true'
+          make_latest: "true"
           prerelease: false

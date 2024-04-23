@@ -1,3 +1,13 @@
+# **Name**
+# Mark stale issues and PR - Reusable workflow
+
+# **Overview**
+# This workflow marks issues and PRs as stale if they have been inactive for a year.
+
+# **When**
+# This workflow is triggered by other workflows.
+# It is not triggered by any events.
+
 name: Mark stale issues and PR
 on:
   workflow_call:

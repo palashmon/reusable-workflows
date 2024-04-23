@@ -1,35 +1,62 @@
+# **Name**
+# Publish NPM Release - Reusable workflow
+
+# **Overview**
+# This workflow tests the project and then
+# publishes a new release to the NPM registry.
+
+# **When**
+# This workflow is triggered by other workflows.
+# It is not triggered by any events.
+
 name: Publish NPM Release
 on:
   workflow_call:
+    inputs:
+      build-needed:
+        description: "Set to true if the build step is needed."
+        required: false
+        type: boolean
+        default: false
+
+# Define the jobs that are called by other workflows.
 jobs:
   test:
+    name: "Test: Node 20"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout Repo
+      - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - name: Setup Node.js
+      - name: Set Node version to 20
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
-          cache-dependency-path: ./package.json
-      - run: npm i
-      - run: npm test
+          node-version: 20
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm test
 
-  publish-npm:
+  publish:
+    name: "Publish to NPM"
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
+      - name: Checkout code
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-      - name: Setup Node.js
+      - name: Set Node version to 20
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
-          node-version: 'lts/*'
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
       - name: Install Dependencies
-        run: npm i
-      - name: Publish NPM Release
+        run: npm install
+      - name: Build
+        if: ${{ inputs.build-needed == true }}
+        run: |
+          echo "Build needed: ${{ inputs.build-needed }}"
+          npm run build
+      - name: Publish to NPM
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}

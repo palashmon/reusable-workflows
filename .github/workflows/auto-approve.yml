@@ -1,3 +1,13 @@
+# **Name**
+# Auto-approve PR - Reusable workflow
+
+# **Overview**
+# This workflow auto-approves pull-requests that are created by the Renovate app.
+# The Renovate app creates pull-requests to update the dependencies in the project.
+
+# **When**
+# Mainly, this workflow is called by other workflows.
+
 name: Auto-approve PR
 on:
   workflow_call:
@@ -9,5 +19,5 @@ jobs:
       - name: Approve Renovate PR
         uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363 # v4.0.0
         with:
-          review-message: "I'm **approving** this PR because it includes a patch or minor update. Thanks!"
+          review-message: "LGTM :+1:"
           github-token: ${{ secrets.GITHUB_TOKEN }}
