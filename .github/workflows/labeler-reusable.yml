@@ -23,11 +23,11 @@ jobs:
     steps:
       # Uploads repository content to the runner
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
         with:
           repository: "palashmon/reusable-workflows"
       - name: Add labels
-        uses: actions/labeler@v5
+        uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5
         with:
           configuration-path: .github/workflows/config/labeler.yml
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
