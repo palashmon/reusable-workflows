@@ -1,0 +1,29 @@
+# **Name**
+# PR labeler - Reusable workflow
+
+# **Overview**
+# This workflow labels pull-requests based on the content and path of the files.
+
+# **When**
+# This workflow is triggered by other workflows.
+# It is not triggered by any events.
+
+name: PR labeler
+on:
+  workflow_call:
+
+# Define the jobs that are called by other workflows.
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Add labels
+        uses: actions/labeler@v5
+        with:
+          configuration-path: .github/workflows/config/labeler.yml
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          sync-labels: ""
