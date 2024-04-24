@@ -21,6 +21,11 @@ jobs:
       pull-requests: write
       contents: read
     steps:
+      # Uploads repository content to the runner
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          repository: "palashmon/reusable-workflows"
       - name: Add labels
         uses: actions/labeler@v5
         with:
