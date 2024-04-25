@@ -15,6 +15,7 @@ on:
 # Define the jobs that are called by other workflows.
 jobs:
   triage:
+    name: "Label PRs"
     runs-on: ubuntu-latest
     permissions:
       issues: write
