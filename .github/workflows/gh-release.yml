@@ -138,7 +138,7 @@ jobs:
       - name: Create Changelog PR with release notes
         if: steps.changelog.outputs.skipped == 'false'
         run: |
-          PR_TITLE="release: ${{ steps.changelog.outputs.tag }} [skip-ci]"
+          PR_TITLE="release: version bump to ${{ steps.changelog.outputs.tag }}"
           PR_BODY="
           ## Type of change
           - [ ] Bug fix
