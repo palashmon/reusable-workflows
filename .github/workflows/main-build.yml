@@ -41,6 +41,8 @@ jobs:
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: ./package.json
       - name: Install legacy dependencies
         if: ${{ inputs.install-legacy-peer-deps == true }}
         run: npm install --legacy-peer-deps
