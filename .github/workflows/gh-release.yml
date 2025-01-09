@@ -198,7 +198,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Create GH Release
-        uses: fregante/release-with-changelog@v3
+        uses: fregante/release-with-changelog@779fd5e658f82e5b11b1c0a352a6838d3bd8f67f # v3.6.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           exclude: 'Ignore|md|skip|vscode|release'
