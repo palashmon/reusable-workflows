@@ -197,16 +197,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Create Release
-        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.0
+      - name: Create GH Release
+        uses: fregante/release-with-changelog@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: ${{ needs.changelog.outputs.tag }}
-          tag_name: ${{ needs.changelog.outputs.tag }}
-          draft: false
-          generate_release_notes: true
-          make_latest: "true"
-          prerelease: false
+          exclude: 'Ignore|md|skip|vscode|release'
 
   # STEP 7: If the changelog step fails, rollback the changes
   on-changelog-failure:
