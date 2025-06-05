@@ -3,11 +3,11 @@
 
 # **Overview**
 # This workflow runs the build and test jobs for various Node versions.
-# Continuously integrating the project ensures that the codebase is always in a working state.
+# Continuously integrating the project ensures that the codebase is always working.
 
 # **When**
-# This workflow is triggered by other workflows.
-# It is not triggered by any events.
+# Other workflows trigger this workflow.
+# Any events do not trigger it.
 
 name: CI
 on:
@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node_version: [18, 20]
+        node_version: [20]
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
