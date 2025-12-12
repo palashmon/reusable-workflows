@@ -36,6 +36,8 @@ jobs:
       should_run: ${{ steps.should_run.outputs.should_run }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          fetch-depth: 0
       - name: "Debug: Print latest commit"
         run: |
           echo ${{ github.sha }}
@@ -81,10 +83,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-      - name: Set Node version to 20
+        with:
+          fetch-depth: 0
+      - name: Set Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 20.19.4
+          registry-url: https://registry.npmjs.org/
+          node-version: lts/*
           cache: 'npm'
           cache-dependency-path: ./package.json
       - name: Install dependencies
@@ -197,6 +202,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          fetch-depth: 0
       - name: Create GH Release
         uses: fregante/release-with-changelog@779fd5e658f82e5b11b1c0a352a6838d3bd8f67f # v3.6.1
         with:
