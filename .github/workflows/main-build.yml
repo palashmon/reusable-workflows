@@ -32,18 +32,16 @@ jobs:
     timeout-minutes: 10
     strategy:
       fail-fast: false
-      matrix:
-        node_version: lts/*
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
-      - name: Set Node version to ${{ matrix.node_version }}
+      - name: Set Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           registry-url: https://registry.npmjs.org/
-          node-version: ${{ matrix.node-version }}
+          node-version: lts/*
           cache: 'npm'
           cache-dependency-path: ./package.json
       - name: Install legacy dependencies
